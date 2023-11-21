@@ -2,8 +2,7 @@ import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { IsPersonTypePipe } from './is-person-type.pipe';
-import { Starship } from '../../api-flow/models/starship.interface';
-import { Person } from '../../api-flow/models/person.interface';
+import { GameCard } from '../app-wrapper/app-wrapper.types';
 
 @Component({
   selector: 'app-player-card',
@@ -14,5 +13,5 @@ import { Person } from '../../api-flow/models/person.interface';
 })
 export class PlayerCardComponent {
   @Input({ required: true }) playerName!: string;
-  @Input() item: Starship | Person | null = null;
+  @Input() item: GameCard | null = null;
 }

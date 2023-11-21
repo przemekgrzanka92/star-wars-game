@@ -19,7 +19,7 @@ export class ApiService {
 
   getStarship(): Observable<Starship> {
     return this.httpClient.get<Starship>(
-      `${this.apiUrl}/people/${this.randomIntFromInterval(1, 36)}`,
+      `${this.apiUrl}/starships/${this.randomIntFromInterval(1, 36)}`,
     );
   }
 

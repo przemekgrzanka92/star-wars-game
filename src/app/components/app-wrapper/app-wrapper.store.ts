@@ -1,42 +1,39 @@
-import { inject, Injectable } from '@angular/core';
+import { computed, inject, Injectable } from '@angular/core';
 import { ComponentStore } from '@ngrx/component-store';
-import { OpponentType } from './app-wrapper.component';
 import { ApiService } from '../../api-flow/services/api.service';
-import { Starship } from '../../api-flow/models/starship.interface';
-import { Person } from '../../api-flow/models/person.interface';
+import { forkJoin, map, switchMap, tap } from 'rxjs';
+import { AppState, GamePlayerKeys, OpponentType } from './app-wrapper.types';
+import { appWrapperStoreInitialState } from './app-wrapper.constants';
 import { CallState } from '../../api-flow/models/call-state.interface';
 
-interface Player {
-  item: Starship | Person | null;
-  score: number;
-}
+const gameApiDecorator = () => {
+  const apiService = inject(ApiService);
 
-export interface AppState {
-  opponentType: OpponentType;
-  callState: CallState;
-  playerOne: Player;
-  playerTwo: Player;
-}
+  return {
+    fetchCard: (type: OpponentType) => {
+      if (type === 'PERSON') {
+        return apiService
+          .getPerson()
+          .pipe(map((res) => ({ name: res.name, score: Number(res.mass) })));
+      }
 
-const initialState: AppState = {
-  opponentType: 'PERSON',
-  callState: 'INIT',
-  playerOne: {
-    item: null,
-    score: 0,
-  },
-  playerTwo: {
-    item: null,
-    score: 0,
-  },
+      return apiService
+        .getStarship()
+        .pipe(map((res) => ({ name: res.name, score: Number(res.crew) })));
+    },
+  };
 };
 
 @Injectable()
 export class AppStore extends ComponentStore<AppState> {
-  private apiService = inject(ApiService);
-  constructor() {
-    super(initialState);
-  }
+  private starshipCardApi = gameApiDecorator();
+
+  playerOne = computed(() => this.state().playerOne);
+
+  playerOneScore = computed(() => this.state().playerOne.score);
+  playerTwoScore = computed(() => this.state().playerTwo.score);
+  opponentType = computed(() => this.state().opponentType);
+  callState = computed(() => this.state().callState);
 
   private playerOne$ = this.select((state) => state.playerOne);
   private playerTwo$ = this.select((state) => state.playerTwo);
@@ -47,4 +44,62 @@ export class AppStore extends ComponentStore<AppState> {
     playerTwo: this.playerTwo$,
     opponentType: this.opponentType$,
   });
+
+  setCallState = this.updater((state, callState: CallState) => ({
+    ...state,
+    callState,
+  }));
+
+  constructor() {
+    super(appWrapperStoreInitialState);
+  }
+
+  fetchCards = this.effect((trigger$) =>
+    trigger$.pipe(
+      tap(() => this.setCallState('LOADING')),
+      switchMap(() =>
+        forkJoin({
+          playerCard: this.starshipCardApi.fetchCard(this.opponentType()),
+          opponentCard: this.starshipCardApi.fetchCard(this.opponentType()),
+        }).pipe(
+          tap(({ playerCard, opponentCard }) => {
+            this.patchState((state) => ({
+              ...state,
+              playerOne: { ...state.playerOne, item: playerCard },
+              playerTwo: { ...state.playerTwo, item: opponentCard },
+            }));
+            this.updateGameScore({
+              playerOneScore: playerCard.score,
+              playerTwoScore: opponentCard.score,
+            });
+            this.setCallState('LOADED');
+          }),
+        ),
+      ),
+    ),
+  );
+
+  updateGameScore = this.updater(
+    (
+      state,
+      {
+        playerOneScore,
+        playerTwoScore,
+      }: { playerOneScore: number; playerTwoScore: number },
+    ) => {
+      if (playerOneScore === playerTwoScore) {
+        return state;
+      }
+      const key: keyof GamePlayerKeys =
+        playerOneScore > playerTwoScore ? 'playerOne' : 'playerTwo';
+
+      return {
+        ...state,
+        [key]: {
+          ...state[key],
+          score: state[key].score + 1,
+        },
+      };
+    },
+  );
 }

@@ -8,6 +8,4 @@ import { RouterOutlet } from '@angular/router';
   imports: [CommonModule, RouterOutlet],
   template: `<router-outlet />`,
 })
-export class AppComponent {
-  title = 'star-wars-game';
-}
+export class AppComponent {}

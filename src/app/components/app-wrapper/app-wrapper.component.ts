@@ -6,8 +6,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { AppStore } from './app-wrapper.store';
 import { provideComponentStore } from '@ngrx/component-store';
-
-export type OpponentType = 'PERSON' | 'STARSHIP';
+import { OpponentType } from './app-wrapper.types';
 
 @Component({
   selector: 'app-wrapper',
@@ -31,7 +30,11 @@ export class AppWrapperComponent implements OnInit {
     { label: 'Starships', value: 'STARSHIP' },
   ];
 
-  ngOnInit() {}
+  ngOnInit() {
+    this.appStore.fetchCards();
+  }
 
-  play() {}
+  play() {
+    this.appStore.fetchCards();
+  }
 }

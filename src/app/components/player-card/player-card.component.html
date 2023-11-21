@@ -1,18 +1,11 @@
 <mat-card class="w-[280px]">
   <mat-card-content>
     <h5>{{ playerName }}</h5>
-    <ng-container *ngIf="item; else noItemMessage">
-      <ng-container *ngIf="item | isPersonType">
-        <p> Name: {{ item.name }}</p>
-        <p> Mass: {{ item.mass }}</p>
-      </ng-container>
 
-      <ng-container *ngIf="!(item | isPersonType)">
+      <ng-container *ngIf="item">
         <p> Name: {{ item.name }}</p>
-        <p> Crew: {{ item.crew }}</p>
+        <p> Score: {{ item.score }}</p>
       </ng-container>
-    </ng-container>
-
     <ng-template #noItemMessage>
       <p>Click 'Let's play' to load the card</p>
     </ng-template>
