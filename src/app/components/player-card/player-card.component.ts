@@ -1,17 +1,19 @@
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
-import { IsPersonTypePipe } from './is-person-type.pipe';
-import { GameCard } from '../app-wrapper/app-wrapper.types';
+import { GameCard } from '../game-wrapper/game-wrapper.types';
+import { CallState } from '../../api-flow/models/call-state.interface';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @Component({
   selector: 'app-player-card',
   standalone: true,
-  imports: [CommonModule, MatCardModule, IsPersonTypePipe],
+  imports: [CommonModule, MatCardModule, MatProgressSpinnerModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './player-card.component.html',
 })
 export class PlayerCardComponent {
   @Input({ required: true }) playerName!: string;
   @Input() item: GameCard | null = null;
+  @Input() callState: CallState = 'INIT';
 }

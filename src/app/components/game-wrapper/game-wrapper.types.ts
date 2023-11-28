@@ -1,4 +1,5 @@
 import { CallState } from '../../api-flow/models/call-state.interface';
+import { FormControl } from '@angular/forms';
 
 export interface GameCard {
   name: string;
@@ -10,13 +11,13 @@ interface Player {
   score: number;
 }
 
-export interface AppState {
-  opponentType: OpponentType;
+export interface GameState {
   callState: CallState;
   playerOne: Player;
   playerTwo: Player;
+  opponentType: FormControl<OpponentType>;
 }
 
-export type GamePlayerKeys = Pick<AppState, 'playerOne' | 'playerTwo'>;
+export type GamePlayerKeys = Pick<GameState, 'playerOne' | 'playerTwo'>;
 
 export type OpponentType = 'PERSON' | 'STARSHIP';

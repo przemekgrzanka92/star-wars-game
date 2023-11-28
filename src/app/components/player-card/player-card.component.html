@@ -1,13 +1,18 @@
-<mat-card class="w-[280px]">
-  <mat-card-content>
-    <h5>{{ playerName }}</h5>
+<mat-card class="w-[200px] h-48" [title]="playerName">
+  <mat-card-header>
+    <mat-card-title>{{playerName}}</mat-card-title>
+  </mat-card-header>
 
-      <ng-container *ngIf="item">
+  <mat-card-content class="h-full flex justify-center">
+      <ng-container *ngIf="item && callState === 'LOADED'; else callStateHandler">
         <p> Name: {{ item.name }}</p>
         <p> Score: {{ item.score }}</p>
       </ng-container>
-    <ng-template #noItemMessage>
-      <p>Click 'Let's play' to load the card</p>
+    <ng-template #callStateHandler>
+      <p *ngIf="callState === 'INIT'">Click 'Let's play' to load the card</p>
+      <div *ngIf="callState === 'LOADING'" class="flex justify-center">
+        <mat-spinner></mat-spinner>
+      </div>
     </ng-template>
 
   </mat-card-content>

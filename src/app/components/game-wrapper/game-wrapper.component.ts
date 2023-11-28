@@ -1,15 +1,17 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PlayerCardComponent } from '../player-card/player-card.component';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { AppStore } from './app-wrapper.store';
+import { ReactiveFormsModule } from '@angular/forms';
+
 import { provideComponentStore } from '@ngrx/component-store';
-import { OpponentType } from './app-wrapper.types';
+import { OpponentType } from './game-wrapper.types';
+import { GameStore } from './game-wrapper.store';
+import { ApiService } from '../../api-flow/services/api.service';
 
 @Component({
-  selector: 'app-wrapper',
+  selector: 'app-game-wrapper',
   standalone: true,
   imports: [
     CommonModule,
@@ -18,23 +20,19 @@ import { OpponentType } from './app-wrapper.types';
     MatSelectModule,
     ReactiveFormsModule,
   ],
-  providers: [provideComponentStore(AppStore)],
-  templateUrl: './app-wrapper.component.html',
+  providers: [provideComponentStore(GameStore)],
+  templateUrl: './game-wrapper.component.html',
 })
-export class AppWrapperComponent implements OnInit {
-  appStore = inject(AppStore);
-  opponentType = new FormControl<OpponentType>('PERSON');
+export class GameWrapperComponent {
+  gameStore = inject(GameStore);
+  api = inject(ApiService);
 
   opponentTypes: { label: string; value: OpponentType }[] = [
     { label: 'People', value: 'PERSON' },
     { label: 'Starships', value: 'STARSHIP' },
   ];
 
-  ngOnInit() {
-    this.appStore.fetchCards();
-  }
-
   play() {
-    this.appStore.fetchCards();
+    this.gameStore.fetchCards();
   }
 }

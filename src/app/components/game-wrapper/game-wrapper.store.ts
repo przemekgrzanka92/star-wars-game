@@ -1,12 +1,13 @@
 import { computed, inject, Injectable } from '@angular/core';
 import { ComponentStore } from '@ngrx/component-store';
 import { ApiService } from '../../api-flow/services/api.service';
-import { forkJoin, map, switchMap, tap } from 'rxjs';
-import { AppState, GamePlayerKeys, OpponentType } from './app-wrapper.types';
-import { appWrapperStoreInitialState } from './app-wrapper.constants';
+import { catchError, EMPTY, forkJoin, map, switchMap, tap } from 'rxjs';
+import { GameState, GamePlayerKeys, OpponentType } from './game-wrapper.types';
+import { gameWrapperStoreInitialState } from './game-wrapper.constants';
 import { CallState } from '../../api-flow/models/call-state.interface';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
-const gameApiDecorator = () => {
+export const gameApiDecorator = () => {
   const apiService = inject(ApiService);
 
   return {
@@ -25,25 +26,14 @@ const gameApiDecorator = () => {
 };
 
 @Injectable()
-export class AppStore extends ComponentStore<AppState> {
+export class GameStore extends ComponentStore<GameState> {
   private starshipCardApi = gameApiDecorator();
+  private snackBar = inject(MatSnackBar);
 
   playerOne = computed(() => this.state().playerOne);
-
-  playerOneScore = computed(() => this.state().playerOne.score);
-  playerTwoScore = computed(() => this.state().playerTwo.score);
-  opponentType = computed(() => this.state().opponentType);
+  playerTwo = computed(() => this.state().playerTwo);
   callState = computed(() => this.state().callState);
-
-  private playerOne$ = this.select((state) => state.playerOne);
-  private playerTwo$ = this.select((state) => state.playerTwo);
-  private opponentType$ = this.select((state) => state.opponentType);
-
-  readonly vm$ = this.select({
-    playerOne: this.playerOne$,
-    playerTwo: this.playerTwo$,
-    opponentType: this.opponentType$,
-  });
+  opponentTypeFormControl = computed(() => this.state().opponentType);
 
   setCallState = this.updater((state, callState: CallState) => ({
     ...state,
@@ -51,18 +41,18 @@ export class AppStore extends ComponentStore<AppState> {
   }));
 
   constructor() {
-    super(appWrapperStoreInitialState);
+    super(gameWrapperStoreInitialState);
   }
 
   fetchCards = this.effect((trigger$) =>
     trigger$.pipe(
       tap(() => this.setCallState('LOADING')),
       switchMap(() =>
-        forkJoin({
-          playerCard: this.starshipCardApi.fetchCard(this.opponentType()),
-          opponentCard: this.starshipCardApi.fetchCard(this.opponentType()),
-        }).pipe(
-          tap(({ playerCard, opponentCard }) => {
+        forkJoin([
+          this.starshipCardApi.fetchCard(this.opponentTypeFormControl().value),
+          this.starshipCardApi.fetchCard(this.opponentTypeFormControl().value),
+        ]).pipe(
+          tap(([playerCard, opponentCard]) => {
             this.patchState((state) => ({
               ...state,
               playerOne: { ...state.playerOne, item: playerCard },
@@ -73,6 +63,11 @@ export class AppStore extends ComponentStore<AppState> {
               playerTwoScore: opponentCard.score,
             });
             this.setCallState('LOADED');
+          }),
+          catchError((err) => {
+            this.showErrorMessage();
+            this.setCallState('INIT');
+            return EMPTY;
           }),
         ),
       ),
@@ -102,4 +97,12 @@ export class AppStore extends ComponentStore<AppState> {
       };
     },
   );
+
+  showErrorMessage() {
+    this.snackBar.open('Something went wrong, try again.', 'Close', {
+      horizontalPosition: 'right',
+      verticalPosition: 'bottom',
+      duration: 2000,
+    });
+  }
 }

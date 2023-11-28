@@ -11,16 +11,14 @@ export class ApiService {
   protected readonly apiUrl = 'https://swapi.dev/api';
   private httpClient = inject(HttpClient);
 
-  getPerson(): Observable<Person> {
-    return this.httpClient.get<Person>(
-      `${this.apiUrl}/people/${this.randomIntFromInterval(1, 82)}`,
-    );
+  getPerson(id?: string | number): Observable<Person> {
+    id = id || this.randomIntFromInterval(2, 82);
+    return this.httpClient.get<Person>(`${this.apiUrl}/people/${id}`);
   }
 
-  getStarship(): Observable<Starship> {
-    return this.httpClient.get<Starship>(
-      `${this.apiUrl}/starships/${this.randomIntFromInterval(1, 36)}`,
-    );
+  getStarship(id?: string | number): Observable<Starship> {
+    id = id || this.randomIntFromInterval(2, 36);
+    return this.httpClient.get<Starship>(`${this.apiUrl}/starships/${id}`);
   }
 
   private randomIntFromInterval(min: number, max: number): number {

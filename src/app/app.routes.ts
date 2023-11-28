@@ -4,8 +4,8 @@ export const routes: Routes = [
   {
     path: 'app',
     loadComponent: () =>
-      import('./components/app-wrapper/app-wrapper.component').then(
-        (c) => c.AppWrapperComponent,
+      import('./components/game-wrapper/game-wrapper.component').then(
+        (c) => c.GameWrapperComponent,
       ),
   },
 ];
